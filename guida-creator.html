@@ -1170,7 +1170,8 @@ async function doPublish() {
 // ══════════════════════════════════════════
 function buildViewerHTML() {
   const tutorials = db.tutorials;
-  const tutJson = JSON.stringify(tutorials);
+  // Encode JSON as base64 to avoid any script-breaking characters
+  const tutJsonB64 = btoa(unescape(encodeURIComponent(JSON.stringify(tutorials))));
 
   return `<!DOCTYPE html>
 <html lang="it">
@@ -1209,23 +1210,42 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#e8f4fd,#
 <body>
 <div class="header"><h1>🌟 Le mie guide</h1><p>Passo dopo passo, ce la fai!</p></div>
 <div class="main" id="main"></div>
+<div id="tdata" style="display:none">${tutJsonB64}</div>
 <script>
-const tutorials = ${tutJson};
-let mode = 'list';
-let currentId = null;
+var tutorials = JSON.parse(decodeURIComponent(escape(atob(document.getElementById('tdata').textContent))));
+var mode = 'list';
+var currentId = null;
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 function render() {
-  const main = document.getElementById('main');
+  var main = document.getElementById('main');
+  var h1 = document.querySelector('.header h1');
   if (mode === 'list') {
-    document.querySelector('.header h1').textContent = '🌟 Le mie guide';
+    h1.textContent = '🌟 Le mie guide';
     if (!tutorials.length) { main.innerHTML = '<div class="empty"><span class="big">📭</span><p>Nessuna guida ancora.</p></div>'; return; }
-    main.innerHTML = '<div class="banner"><div class="banner-emoji">💪</div><div class="banner-text">Qui trovi tutto quello che ti serve. Prenditi il tempo che vuoi!</div></div>' +
-      tutorials.map(t => '<div class="tut-card" onclick="openTut(\''+t.id+'\')"><span class="tut-icon">'+t.icon+'</span><div class="tut-name">'+t.name+'</div><div class="tut-meta">'+(t.steps||[]).length+' schermate · Tocca per iniziare →</div></div>').join('');
+    var html = '<div class="banner"><div class="banner-emoji">💪</div><div class="banner-text">Qui trovi tutto quello che ti serve. Prenditi il tempo che vuoi!</div></div>';
+    tutorials.forEach(function(t, i) {
+      html += '<div class="tut-card" data-idx="'+i+'"><span class="tut-icon">'+esc(t.icon)+'</span><div class="tut-name">'+esc(t.name)+'</div><div class="tut-meta">'+((t.steps||[]).length)+' schermate · Tocca per iniziare →</div></div>';
+    });
+    main.innerHTML = html;
+    main.querySelectorAll('.tut-card').forEach(function(el) {
+      el.addEventListener('click', function() { openTut(tutorials[parseInt(el.dataset.idx)].id); });
+    });
   } else {
-    const t = tutorials.find(x => x.id === currentId);
-    document.querySelector('.header h1').textContent = t.icon + ' ' + t.name;
-    main.innerHTML = '<button class="back-btn" onclick="goBack()">‹ Torna alle guide</button>' +
-      (t.steps||[]).map((s,i) => '<div class="step-card"><div class="step-head"><div class="step-num">'+(i+1)+'</div><div class="step-lbl">Passo '+(i+1)+'</div></div>'+(s.img?'<img class="step-img" src="'+s.img+'" alt="passo '+(i+1)+'">'  :'')+(s.caption?'<div class="step-caption">'+s.caption+'</div>':'')+'</div>').join('') +
-      '<button class="done-btn" onclick="goBack()">✅ Ho finito! Torna alle guide</button>';
+    var t = null;
+    for(var i=0;i<tutorials.length;i++){if(tutorials[i].id===currentId){t=tutorials[i];break;}}
+    if(!t){mode='list';render();return;}
+    h1.textContent = (t.icon||'') + ' ' + (t.name||'');
+    var html2 = '<button class="back-btn" id="backBtn">‹ Torna alle guide</button>';
+    (t.steps||[]).forEach(function(s,i){
+      html2 += '<div class="step-card"><div class="step-head"><div class="step-num">'+(i+1)+'</div><div class="step-lbl">Passo '+(i+1)+'</div></div>';
+      if(s.img) html2 += '<img class="step-img" src="'+s.img+'" alt="passo '+(i+1)+'">';
+      if(s.caption) html2 += '<div class="step-caption">'+esc(s.caption)+'</div>';
+      html2 += '</div>';
+    });
+    html2 += '<button class="done-btn" id="doneBtn">✅ Ho finito! Torna alle guide</button>';
+    main.innerHTML = html2;
+    document.getElementById('backBtn').addEventListener('click', goBack);
+    document.getElementById('doneBtn').addEventListener('click', goBack);
     window.scrollTo({top:0});
   }
 }
