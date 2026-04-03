@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Guida Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222533;
+  --surface3: #2a2e3f;
+  --border: #2e3248;
+  --accent: #6c8eff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --text: #e8eaf6;
+  --text2: #8b90b0;
+  --text3: #555a7a;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Figtree', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-back {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.topbar-title { font-size: 17px; font-weight: 800; flex: 1; }
+.topbar-action {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: white;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.topbar-action:active { opacity: 0.8; }
+.topbar-action.danger { background: var(--red); }
+.topbar-action.success { background: var(--green); color: #0f1117; }
+
+/* ── SCROLL BODY ── */
+.scroll-body { flex: 1; overflow-y: auto; padding: 20px 18px 100px; }
+
+/* ════════════════════════════════
+   SCREEN: SETUP
+════════════════════════════════ */
+#screen-setup {
+  background: linear-gradient(160deg, #0f1117 0%, #151829 100%);
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.setup-logo { font-size: 56px; margin-bottom: 16px; }
+.setup-title { font-size: 28px; font-weight: 900; margin-bottom: 8px; text-align: center; }
+.setup-sub { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 40px; line-height: 1.6; }
+
+.setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+}
+.setup-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 18px; color: var(--accent); }
+
+.field-label { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.field-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: 'Figtree', sans-serif;
+  font-size: 15px;
+  margin-bottom: 18px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: var(--text3); }
+
+.setup-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 4px;
+  box-shadow: 0 4px 20px rgba(108,142,255,0.3);
+}
+.setup-btn:active { opacity: 0.9; transform: scale(0.99); }
+
+.setup-note {
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════
+   SCREEN: HOME (lista tutorial)
+════════════════════════════════ */
+#screen-home .topbar { justify-content: space-between; }
+
+.home-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-num { font-size: 32px; font-weight: 900; color: var(--accent); }
+.stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; font-weight: 600; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.tutorial-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.tutorial-item:active { background: var(--surface2); }
+.tutorial-item-icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.tutorial-item-body { flex: 1; min-width: 0; }
+.tutorial-item-name { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tutorial-item-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.tutorial-item-arrow { color: var(--text3); font-size: 20px; }
+
+.published-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  position: absolute;
+  top: 12px; right: 14px;
+}
+
+.new-tutorial-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.new-tutorial-btn:active { background: var(--surface2); }
+
+/* ════════════════════════════════
+   SCREEN: EDIT TUTORIAL
+════════════════════════════════ */
+.tutorial-meta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.emoji-picker-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.emoji-opt {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 2px solid transparent;
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.emoji-opt.selected { border-color: var(--accent); background: var(--surface3); }
+
+/* ── STEPS ── */
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.step-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface2);
+}
+.step-badge {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  font-weight: 900;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-card-title { flex: 1; font-size: 14px; font-weight: 700; color: var(--text2); }
+.step-del-btn {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(248,113,113,0.15);
+  border: none;
+  color: var(--red);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+.step-card-body { padding: 14px 16px; }
+
+/* image upload area */
+.img-upload-area {
+  width: 100%;
+  aspect-ratio: 9/16;
+  max-height: 300px;
+  border-radius: var(--radius-sm);
+  border: 2px dashed var(--border);
+  background: var(--surface2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.img-upload-area:active { border-color: var(--accent); }
+.img-upload-area img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  position: absolute; top: 0; left: 0;
+}
+.img-upload-icon { font-size: 32px; }
+.img-upload-label { font-size: 13px; color: var(--text2); font-weight: 600; }
+.img-upload-input { display: none; }
+
+.img-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.img-action-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: 'Figtree', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.img-action-btn:active { background: var(--surface3); }
+
+.step-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: 'Figtree', sans-serif;
+  font-size: 15px;
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+.step-textarea:focus { border-color: var(--accent); }
+.step-textarea::placeholder { color: var(--text3); }
+
+.add-step-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.add-step-btn:active { background: var(--surface2); }
+
+/* publish bar */
+.publish-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 18px;
+  display: flex;
+  gap: 10px;
+  z-index: 50;
+}
+.pub-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+.pub-btn.save { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.pub-btn.publish { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 16px rgba(108,142,255,0.3); }
+.pub-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+/* ════════════════════════════════
+   SCREEN: PREVIEW (lei)
+════════════════════════════════ */
+#screen-preview {
+  background: linear-gradient(160deg, #e8f4fd 0%, #f0fdf4 50%, #fef9ee 100%);
+  color: #1e293b;
+}
+#screen-preview .topbar {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-bottom: none;
+  color: white;
+}
+#screen-preview .topbar-back { background: rgba(255,255,255,0.2); border-color: transparent; color: white; }
+
+.preview-tutorial-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.preview-tutorial-card:active { transform: scale(0.98); }
+.preview-card-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+.preview-card-name { font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+.preview-card-steps { font-size: 13px; color: #94a3b8; }
+
+/* preview single tutorial */
+.preview-step {
+  background: white;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.preview-step-header {
+  background: #3b82f6;
+  color: white;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.preview-step-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  font-weight: 900;
+  font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.preview-step-label { font-weight: 800; font-size: 14px; }
+.preview-step-img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: #f8fafc;
+  display: block;
+}
+.preview-step-caption {
+  padding: 16px 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.5;
+}
+.preview-step-no-img {
+  padding: 20px 18px;
+  font-size: 15px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.preview-done-btn {
+  width: calc(100% - 36px);
+  margin: 0 18px 20px;
+  padding: 15px;
+  background: #22c55e;
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+}
+.preview-done-btn:active { opacity: 0.9; }
+
+/* ════════════════════════════════
+   PUBLISH MODAL
+════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 24px 20px 48px;
+  width: 100%;
+  max-width: 600px;
+  animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+.modal-sub { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+.modal-status {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 16px;
+  min-height: 48px;
+  line-height: 1.5;
+}
+.modal-status.ok { color: var(--green); }
+.modal-status.err { color: var(--red); }
+.modal-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(108,142,255,0.3);
+  margin-bottom: 10px;
+}
+.modal-btn:active { opacity: 0.9; }
+.modal-btn.cancel { background: var(--surface2); color: var(--text2); box-shadow: none; border: 1px solid var(--border); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 100px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1e293b;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.25s;
+  pointer-events: none;
+  z-index: 500;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── SPINNER ── */
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-state .big { font-size: 48px; margin-bottom: 12px; display: block; }
+.empty-state p { font-size: 15px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ SCREEN: SETUP ════════════ -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-logo">🛠️</div>
+  <div class="setup-title">Guida Creator</div>
+  <div class="setup-sub">Crea tutorial visivi per iPhone.<br>Inserisci i tuoi dati GitHub una volta sola.</div>
+
+  <div class="setup-card">
+    <h3>⚙️ Configurazione GitHub</h3>
+
+    <div class="field-label">Username GitHub</div>
+    <input class="field-input" id="cfg-user" type="text" placeholder="es. porelmorro" autocomplete="off" autocapitalize="none">
+
+    <div class="field-label">Nome Repository</div>
+    <input class="field-input" id="cfg-repo" type="text" placeholder="es. guida-mia" autocomplete="off" autocapitalize="none">
+
+    <div class="field-label">Token di accesso</div>
+    <input class="field-input" id="cfg-token" type="password" placeholder="ghp_..." autocomplete="off" autocapitalize="none">
+
+    <div class="field-label">Password admin (per te)</div>
+    <input class="field-input" id="cfg-pass" type="password" placeholder="Scegli una password" autocomplete="off">
+
+    <button class="setup-btn" onclick="saveConfig()">Inizia →</button>
+    <div class="setup-note">Il token viene salvato solo sul tuo iPhone.<br>Non viene mai inviato ad altri.</div>
+  </div>
+</div>
+
+<!-- ════════════ SCREEN: LOGIN ════════════ -->
+<div id="screen-login" class="screen">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; background: linear-gradient(160deg,#0f1117,#151829);">
+    <div style="font-size:52px; margin-bottom:16px;">🔒</div>
+    <div style="font-size:24px; font-weight:900; margin-bottom:8px;">Accesso Admin</div>
+    <div style="font-size:14px; color:var(--text2); margin-bottom:40px; text-align:center;">Inserisci la password per gestire i tutorial</div>
+    <div style="width:100%; max-width:360px;">
+      <input class="field-input" id="login-pass" type="password" placeholder="Password" style="margin-bottom:12px;" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="setup-btn" onclick="doLogin()">Accedi</button>
+      <div style="text-align:center; margin-top:16px;">
+        <span style="font-size:13px; color:var(--text3); cursor:pointer;" onclick="showPreviewFromLogin()">👁 Vedi come la vede lei →</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ SCREEN: HOME ════════════ -->
+<div id="screen-home" class="screen">
+  <div class="topbar">
+    <div class="topbar-title">📚 I tuoi tutorial</div>
+    <button class="topbar-action" onclick="showPreview()">👁 Anteprima</button>
+    <button class="topbar-action" style="background:var(--surface2); color:var(--text2); border:1px solid var(--border); margin-left:4px;" onclick="showSettings()">⚙️</button>
+  </div>
+  <div class="scroll-body">
+    <div class="home-stats">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-count">0</div>
+        <div class="stat-label">Tutorial</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-steps">0</div>
+        <div class="stat-label">Schermate totali</div>
+      </div>
+    </div>
+
+    <div class="section-label">Tutorial salvati</div>
+    <div id="tutorial-list"></div>
+
+    <button class="new-tutorial-btn" onclick="newTutorial()">
+      ＋ Nuovo tutorial
+    </button>
+  </div>
+</div>
+
+<!-- ════════════ SCREEN: EDIT ════════════ -->
+<div id="screen-edit" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">‹</button>
+    <div class="topbar-title" id="edit-topbar-title">Nuovo tutorial</div>
+    <button class="topbar-action danger" onclick="deleteTutorial()" style="font-size:18px; padding:8px 12px;">🗑</button>
+  </div>
+  <div class="scroll-body" id="edit-body">
+    <!-- injected -->
+  </div>
+  <div class="publish-bar">
+    <button class="pub-btn save" onclick="saveTutorial()">💾 Salva</button>
+    <button class="pub-btn publish" onclick="openPublishModal()">🚀 Pubblica su GitHub</button>
+  </div>
+</div>
+
+<!-- ════════════ SCREEN: PREVIEW ════════════ -->
+<div id="screen-preview" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="closePreview()">‹</button>
+    <div class="topbar-title" id="preview-topbar-title" style="color:white;">Anteprima</div>
+  </div>
+  <div class="scroll-body" id="preview-body"></div>
+</div>
+
+<!-- ════════════ SCREEN: SETTINGS ════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">‹</button>
+    <div class="topbar-title">Impostazioni</div>
+  </div>
+  <div class="scroll-body">
+    <div class="tutorial-meta-card">
+      <div class="field-label">Username GitHub</div>
+      <input class="field-input" id="s-user" type="text" autocapitalize="none">
+      <div class="field-label">Repository</div>
+      <input class="field-input" id="s-repo" type="text" autocapitalize="none">
+      <div class="field-label">Token GitHub</div>
+      <input class="field-input" id="s-token" type="password">
+      <div class="field-label">Password admin</div>
+      <input class="field-input" id="s-pass" type="password">
+      <button class="setup-btn" onclick="updateSettings()" style="margin-top:4px;">Salva impostazioni</button>
+    </div>
+    <button style="width:100%;padding:14px;background:rgba(248,113,113,0.1);border:1px solid var(--red);border-radius:var(--radius-sm);color:var(--red);font-family:'Figtree',sans-serif;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px;" onclick="resetAll()">
+      ⚠️ Reset completo (cancella tutto)
+    </button>
+  </div>
+</div>
+
+<!-- ════════════ PUBLISH MODAL ════════════ -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🚀 Pubblica su GitHub</div>
+    <div class="modal-sub">Il tutorial verrà caricato sul tuo repository. Lei vedrà la versione aggiornata aprendo il link.</div>
+    <div class="modal-status" id="publish-status">Pronto per la pubblicazione.</div>
+    <button class="modal-btn" id="publish-go-btn" onclick="doPublish()">Pubblica ora</button>
+    <button class="modal-btn cancel" onclick="closePublishModal()">Annulla</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE & STORAGE
+// ══════════════════════════════════════════
+const DB_KEY = 'guida-creator-v1';
+let db = JSON.parse(localStorage.getItem(DB_KEY) || 'null');
+if (!db) {
+  db = { configured: false, user: '', repo: '', token: '', pass: '', tutorials: [] };
+}
+let currentTutorialId = null;
+let previewMode = null; // 'list' | 'tutorial'
+let previewTutorialId = null;
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+// ══════════════════════════════════════════
+// ROUTING
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function init() {
+  if (!db.configured) { showScreen('setup'); return; }
+  showScreen('login');
+}
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+function saveConfig() {
+  const user = document.getElementById('cfg-user').value.trim();
+  const repo = document.getElementById('cfg-repo').value.trim();
+  const token = document.getElementById('cfg-token').value.trim();
+  const pass = document.getElementById('cfg-pass').value;
+  if (!user || !repo || !token || !pass) { toast('⚠️ Compila tutti i campi'); return; }
+  db.user = user; db.repo = repo; db.token = token; db.pass = pass; db.configured = true;
+  saveDB();
+  showScreen('home');
+  renderHome();
+}
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+function doLogin() {
+  const p = document.getElementById('login-pass').value;
+  if (p === db.pass) {
+    document.getElementById('login-pass').value = '';
+    showScreen('home');
+    renderHome();
+  } else {
+    toast('❌ Password errata');
+  }
+}
+
+function showPreviewFromLogin() {
+  renderPreviewList();
+  showScreen('preview');
+}
+
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
+function renderHome() {
+  const list = document.getElementById('tutorial-list');
+  const totalSteps = db.tutorials.reduce((a, t) => a + (t.steps || []).length, 0);
+  document.getElementById('stat-count').textContent = db.tutorials.length;
+  document.getElementById('stat-steps').textContent = totalSteps;
+
+  if (db.tutorials.length === 0) {
+    list.innerHTML = `<div class="empty-state"><span class="big">📭</span><p>Nessun tutorial ancora.<br>Creane uno nuovo!</p></div>`;
+    return;
+  }
+
+  list.innerHTML = db.tutorials.map(t => `
+    <div class="tutorial-item" onclick="editTutorial('${t.id}')">
+      ${t.published ? '<div class="published-dot"></div>' : ''}
+      <div class="tutorial-item-icon">${t.icon || '📱'}</div>
+      <div class="tutorial-item-body">
+        <div class="tutorial-item-name">${t.name || 'Senza nome'}</div>
+        <div class="tutorial-item-meta">${(t.steps || []).length} schermate ${t.published ? '· ✅ Pubblicato' : '· ○ Non pubblicato'}</div>
+      </div>
+      <div class="tutorial-item-arrow">›</div>
+    </div>
+  `).join('');
+}
+
+function goHome() {
+  showScreen('home');
+  renderHome();
+}
+
+// ══════════════════════════════════════════
+// EDIT TUTORIAL
+// ══════════════════════════════════════════
+const EMOJIS = ['📱','⚙️','📸','💬','📞','✉️','🔔','🗓','🔍','🎵','📍','💡','🌐','🔒','📲','🖼'];
+
+function newTutorial() {
+  const id = 'tut_' + Date.now();
+  const tut = { id, name: '', icon: '📱', steps: [], published: false };
+  db.tutorials.push(tut);
+  saveDB();
+  editTutorial(id);
+}
+
+function editTutorial(id) {
+  currentTutorialId = id;
+  const tut = db.tutorials.find(t => t.id === id);
+  document.getElementById('edit-topbar-title').textContent = tut.name || 'Nuovo tutorial';
+  renderEditBody(tut);
+  showScreen('edit');
+}
+
+function renderEditBody(tut) {
+  const body = document.getElementById('edit-body');
+  body.innerHTML = `
+    <div class="tutorial-meta-card">
+      <div class="field-label">Nome del tutorial</div>
+      <input class="field-input" id="tut-name" type="text" placeholder="es. Mandare un messaggio WhatsApp"
+        value="${escHtml(tut.name)}" oninput="syncName(this.value)">
+      <div class="field-label">Icona</div>
+      <div class="emoji-picker-row">
+        ${EMOJIS.map(e => `<div class="emoji-opt ${e === tut.icon ? 'selected' : ''}" onclick="selectIcon(this,'${e}')">${e}</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section-label">Schermate (passi)</div>
+    <div id="steps-list">
+      ${(tut.steps || []).map((s, i) => renderStepCard(s, i)).join('')}
+    </div>
+
+    <button class="add-step-btn" onclick="addStep()">＋ Aggiungi schermata</button>
+  `;
+}
+
+function renderStepCard(step, i) {
+  const hasImg = step.img && step.img.length > 10;
+  return `
+    <div class="step-card" data-step="${step.id}">
+      <div class="step-card-header">
+        <div class="step-badge">${i + 1}</div>
+        <div class="step-card-title">Schermata ${i + 1}</div>
+        <button class="step-del-btn" onclick="deleteStep('${step.id}')">×</button>
+      </div>
+      <div class="step-card-body">
+        <div class="img-upload-area" onclick="triggerImgUpload('${step.id}')">
+          ${hasImg ? `<img src="${step.img}" alt="screenshot">` : `<div class="img-upload-icon">📷</div><div class="img-upload-label">Tocca per aggiungere screenshot</div>`}
+        </div>
+        <input class="img-upload-input" type="file" accept="image/*" id="file-${step.id}" onchange="handleImgUpload(this,'${step.id}')">
+        ${hasImg ? `<div class="img-actions">
+          <button class="img-action-btn" onclick="triggerImgUpload('${step.id}')">🔄 Cambia foto</button>
+          <button class="img-action-btn" onclick="removeImg('${step.id}')">🗑 Rimuovi</button>
+        </div>` : ''}
+        <textarea class="step-textarea" placeholder="Istruzione… es: &quot;Tocca il numero 2&quot;" onchange="updateStepCaption('${step.id}', this.value)">${escHtml(step.caption || '')}</textarea>
+      </div>
+    </div>
+  `;
+}
+
+function syncName(val) {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  if (tut) { tut.name = val; document.getElementById('edit-topbar-title').textContent = val || 'Nuovo tutorial'; }
+}
+
+function selectIcon(el, emoji) {
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  if (tut) tut.icon = emoji;
+}
+
+function addStep() {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  if (!tut) return;
+  const step = { id: 'step_' + Date.now(), img: '', caption: '' };
+  tut.steps.push(step);
+  // re-render steps list only
+  const list = document.getElementById('steps-list');
+  list.innerHTML = tut.steps.map((s, i) => renderStepCard(s, i)).join('');
+  // scroll to bottom
+  setTimeout(() => document.getElementById('edit-body').scrollTo({ top: 99999, behavior: 'smooth' }), 100);
+}
+
+function deleteStep(stepId) {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  if (!tut) return;
+  tut.steps = tut.steps.filter(s => s.id !== stepId);
+  const list = document.getElementById('steps-list');
+  list.innerHTML = tut.steps.map((s, i) => renderStepCard(s, i)).join('');
+}
+
+function triggerImgUpload(stepId) {
+  document.getElementById('file-' + stepId).click();
+}
+
+function handleImgUpload(input, stepId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // compress
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 750;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.65);
+      const tut = db.tutorials.find(t => t.id === currentTutorialId);
+      const step = tut && tut.steps.find(s => s.id === stepId);
+      if (step) {
+        step.img = compressed;
+        const list = document.getElementById('steps-list');
+        list.innerHTML = tut.steps.map((s, i) => renderStepCard(s, i)).join('');
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImg(stepId) {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  const step = tut && tut.steps.find(s => s.id === stepId);
+  if (step) {
+    step.img = '';
+    const list = document.getElementById('steps-list');
+    list.innerHTML = tut.steps.map((s, i) => renderStepCard(s, i)).join('');
+  }
+}
+
+function updateStepCaption(stepId, val) {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  const step = tut && tut.steps.find(s => s.id === stepId);
+  if (step) step.caption = val;
+}
+
+function saveTutorial() {
+  const tut = db.tutorials.find(t => t.id === currentTutorialId);
+  if (!tut) return;
+  // sync name from input
+  const nameInput = document.getElementById('tut-name');
+  if (nameInput) tut.name = nameInput.value;
+  // sync captions
+  document.querySelectorAll('.step-textarea').forEach(ta => {
+    const card = ta.closest('.step-card');
+    if (card) {
+      const sid = card.dataset.step;
+      const step = tut.steps.find(s => s.id === sid);
+      if (step) step.caption = ta.value;
+    }
+  });
+  saveDB();
+  toast('💾 Salvato!');
+}
+
+function deleteTutorial() {
+  if (!confirm('Eliminare questo tutorial?')) return;
+  db.tutorials = db.tutorials.filter(t => t.id !== currentTutorialId);
+  saveDB();
+  goHome();
+}
+
+// ══════════════════════════════════════════
+// PREVIEW (come la vede lei)
+// ══════════════════════════════════════════
+function showPreview() { renderPreviewList(); showScreen('preview'); }
+
+function renderPreviewList() {
+  previewMode = 'list';
+  document.getElementById('preview-topbar-title').textContent = '📱 Le mie guide';
+  const body = document.getElementById('preview-body');
+  if (db.tutorials.length === 0) {
+    body.innerHTML = `<div class="empty-state" style="color:#94a3b8;"><span class="big">📭</span><p>Nessun tutorial ancora.</p></div>`;
+    return;
+  }
+  body.innerHTML = db.tutorials.map(t => `
+    <div class="preview-tutorial-card" onclick="renderPreviewTutorial('${t.id}')">
+      <span class="preview-card-icon">${t.icon || '📱'}</span>
+      <div class="preview-card-name">${t.name || 'Tutorial'}</div>
+      <div class="preview-card-steps">${(t.steps || []).length} schermate · Tocca per iniziare →</div>
+    </div>
+  `).join('');
+}
+
+function renderPreviewTutorial(id) {
+  previewMode = 'tutorial';
+  previewTutorialId = id;
+  const tut = db.tutorials.find(t => t.id === id);
+  document.getElementById('preview-topbar-title').textContent = tut.icon + ' ' + (tut.name || 'Tutorial');
+  const body = document.getElementById('preview-body');
+  body.innerHTML = (tut.steps || []).map((s, i) => `
+    <div class="preview-step">
+      <div class="preview-step-header">
+        <div class="preview-step-num">${i + 1}</div>
+        <div class="preview-step-label">Passo ${i + 1}</div>
+      </div>
+      ${s.img ? `<img class="preview-step-img" src="${s.img}" alt="screenshot passo ${i+1}">` : `<div class="preview-step-no-img">📷 Nessuna immagine per questo passo</div>`}
+      ${s.caption ? `<div class="preview-step-caption">${escHtml(s.caption)}</div>` : ''}
+    </div>
+  `).join('') + `<button class="preview-done-btn" onclick="renderPreviewList()">✅ Ho finito! Torna alle guide</button>`;
+  body.scrollTo({ top: 0 });
+}
+
+function closePreview() {
+  if (previewMode === 'tutorial') { renderPreviewList(); return; }
+  // came from login
+  showScreen('login');
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function showSettings() {
+  document.getElementById('s-user').value = db.user;
+  document.getElementById('s-repo').value = db.repo;
+  document.getElementById('s-token').value = db.token;
+  document.getElementById('s-pass').value = db.pass;
+  showScreen('settings');
+}
+
+function updateSettings() {
+  db.user = document.getElementById('s-user').value.trim();
+  db.repo = document.getElementById('s-repo').value.trim();
+  db.token = document.getElementById('s-token').value.trim();
+  db.pass = document.getElementById('s-pass').value;
+  saveDB();
+  toast('✅ Impostazioni salvate');
+  goHome();
+}
+
+function resetAll() {
+  if (!confirm('Cancellare tutto? Questa operazione non si può annullare.')) return;
+  localStorage.removeItem(DB_KEY);
+  location.reload();
+}
+
+// ══════════════════════════════════════════
+// PUBLISH TO GITHUB
+// ══════════════════════════════════════════
+function openPublishModal() {
+  saveTutorial();
+  document.getElementById('publish-status').textContent = 'Pronto per la pubblicazione.';
+  document.getElementById('publish-status').className = 'modal-status';
+  document.getElementById('publish-go-btn').disabled = false;
+  document.getElementById('publish-go-btn').innerHTML = 'Pubblica ora';
+  document.getElementById('publish-modal').classList.add('open');
+}
+
+function closePublishModal() {
+  document.getElementById('publish-modal').classList.remove('open');
+}
+
+async function doPublish() {
+  const btn = document.getElementById('publish-go-btn');
+  const status = document.getElementById('publish-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Pubblicazione in corso…';
+  status.className = 'modal-status';
+  status.textContent = 'Connessione a GitHub…';
+
+  try {
+    const { user, repo, token } = db;
+    const fileName = 'guida-viewer.html';
+    const content = buildViewerHTML();
+    const encoded = btoa(unescape(encodeURIComponent(content)));
+
+    // check if file exists (to get SHA for update)
+    status.textContent = 'Controllo file esistente…';
+    let sha = null;
+    try {
+      const check = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${fileName}`, {
+        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (check.ok) { const j = await check.json(); sha = j.sha; }
+    } catch(e) {}
+
+    // upload
+    status.textContent = 'Caricamento tutorial…';
+    const body = { message: 'Aggiorna guida ' + new Date().toLocaleString('it-IT'), content: encoded };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${fileName}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Errore GitHub');
+    }
+
+    // enable GitHub Pages if first time
+    status.textContent = 'Attivazione GitHub Pages…';
+    try {
+      await fetch(`https://api.github.com/repos/${user}/${repo}/pages`, {
+        method: 'POST',
+        headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: { branch: 'main', path: '/' } })
+      });
+    } catch(e) { /* già attivo, ok */ }
+
+    // mark as published
+    const tut = db.tutorials.find(t => t.id === currentTutorialId);
+    if (tut) tut.published = true;
+    saveDB();
+
+    const link = `https://${user}.github.io/${repo}/guida-viewer.html`;
+    status.className = 'modal-status ok';
+    status.innerHTML = `✅ Pubblicato!<br><br>Link per lei:<br><strong>${link}</strong><br><br>Copialo e mandaglielo su WhatsApp.`;
+    btn.innerHTML = '📋 Copia link';
+    btn.disabled = false;
+    btn.onclick = () => { navigator.clipboard.writeText(link).then(() => toast('📋 Link copiato!')); };
+
+  } catch(e) {
+    status.className = 'modal-status err';
+    status.textContent = '❌ Errore: ' + e.message;
+    btn.disabled = false;
+    btn.innerHTML = 'Riprova';
+    btn.onclick = doPublish;
+  }
+}
+
+// ══════════════════════════════════════════
+// BUILD VIEWER HTML (per lei)
+// ══════════════════════════════════════════
+function buildViewerHTML() {
+  const tutorials = db.tutorials;
+  const tutJson = JSON.stringify(tutorials);
+
+  return `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Le mie guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#e8f4fd,#f0fdf4 50%,#fef9ee);min-height:100vh;color:#1e293b;}
+.header{background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;padding:28px 20px 20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(59,130,246,.3);}
+.header h1{font-size:26px;font-weight:900;}
+.header p{font-size:13px;opacity:.8;margin-top:4px;}
+.main{padding:20px 16px 80px;max-width:600px;margin:0 auto;}
+.back-btn{display:flex;align-items:center;gap:8px;background:white;border:none;border-radius:12px;padding:10px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#3b82f6;margin-bottom:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.tut-card{background:white;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;transition:transform .15s;}
+.tut-card:active{transform:scale(.98);}
+.tut-icon{font-size:36px;margin-bottom:10px;display:block;}
+.tut-name{font-size:18px;font-weight:900;margin-bottom:4px;}
+.tut-meta{font-size:13px;color:#94a3b8;}
+.step-card{background:white;border-radius:20px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+.step-head{background:#3b82f6;color:white;padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.step-num{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-lbl{font-weight:800;font-size:14px;}
+.step-img{width:100%;max-height:340px;object-fit:contain;background:#f8fafc;display:block;}
+.step-caption{padding:16px 18px;font-size:17px;font-weight:700;line-height:1.5;}
+.done-btn{width:calc(100% - 36px);margin:0 18px 20px;padding:15px;background:#22c55e;border:none;border-radius:14px;color:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.3);}
+.empty{text-align:center;padding:60px 20px;color:#94a3b8;}
+.empty .big{font-size:48px;display:block;margin-bottom:12px;}
+.banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.banner-emoji{font-size:32px;flex-shrink:0;}
+.banner-text{font-size:14px;font-weight:700;color:#92400e;line-height:1.4;}
+</style>
+</head>
+<body>
+<div class="header"><h1>🌟 Le mie guide</h1><p>Passo dopo passo, ce la fai!</p></div>
+<div class="main" id="main"></div>
+<script>
+const tutorials = ${tutJson};
+let mode = 'list';
+let currentId = null;
+function render() {
+  const main = document.getElementById('main');
+  if (mode === 'list') {
+    document.querySelector('.header h1').textContent = '🌟 Le mie guide';
+    if (!tutorials.length) { main.innerHTML = '<div class="empty"><span class="big">📭</span><p>Nessuna guida ancora.</p></div>'; return; }
+    main.innerHTML = '<div class="banner"><div class="banner-emoji">💪</div><div class="banner-text">Qui trovi tutto quello che ti serve. Prenditi il tempo che vuoi!</div></div>' +
+      tutorials.map(t => '<div class="tut-card" onclick="openTut(\''+t.id+'\')"><span class="tut-icon">'+t.icon+'</span><div class="tut-name">'+t.name+'</div><div class="tut-meta">'+(t.steps||[]).length+' schermate · Tocca per iniziare →</div></div>').join('');
+  } else {
+    const t = tutorials.find(x => x.id === currentId);
+    document.querySelector('.header h1').textContent = t.icon + ' ' + t.name;
+    main.innerHTML = '<button class="back-btn" onclick="goBack()">‹ Torna alle guide</button>' +
+      (t.steps||[]).map((s,i) => '<div class="step-card"><div class="step-head"><div class="step-num">'+(i+1)+'</div><div class="step-lbl">Passo '+(i+1)+'</div></div>'+(s.img?'<img class="step-img" src="'+s.img+'" alt="passo '+(i+1)+'">'  :'')+(s.caption?'<div class="step-caption">'+s.caption+'</div>':'')+'</div>').join('') +
+      '<button class="done-btn" onclick="goBack()">✅ Ho finito! Torna alle guide</button>';
+    window.scrollTo({top:0});
+  }
+}
+function openTut(id) { mode = 'tutorial'; currentId = id; render(); }
+function goBack() { mode = 'list'; render(); }
+render();
+<\/script>
+</body>
+</html>`;
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
