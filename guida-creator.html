@@ -620,6 +620,9 @@ body {
     <div class="field-label">Password admin (per te)</div>
     <input class="field-input" id="cfg-pass" type="password" placeholder="Scegli una password" autocomplete="off">
 
+    <div class="field-label">Password per il viewer (chi vede le guide)</div>
+    <input class="field-input" id="cfg-viewerpass" type="password" placeholder="Es. rosa2024" autocomplete="off">
+
     <button class="setup-btn" onclick="saveConfig()">Inizia →</button>
     <div class="setup-note">Il token viene salvato solo sul tuo iPhone.<br>Non viene mai inviato ad altri.</div>
   </div>
@@ -710,6 +713,8 @@ body {
       <input class="field-input" id="s-token" type="password">
       <div class="field-label">Password admin</div>
       <input class="field-input" id="s-pass" type="password">
+      <div class="field-label">Password per il viewer (chi vede le guide)</div>
+      <input class="field-input" id="s-viewerpass" type="password" placeholder="Lascia vuoto per nessuna protezione">
       <button class="setup-btn" onclick="updateSettings()" style="margin-top:4px;">Salva impostazioni</button>
     </div>
     <button style="width:100%;padding:14px;background:rgba(248,113,113,0.1);border:1px solid var(--red);border-radius:var(--radius-sm);color:var(--red);font-family:'Figtree',sans-serif;font-weight:800;font-size:14px;cursor:pointer;margin-top:8px;" onclick="resetAll()">
@@ -740,7 +745,7 @@ body {
 const DB_KEY = 'guida-creator-v1';
 let db = JSON.parse(localStorage.getItem(DB_KEY) || 'null');
 if (!db) {
-  db = { configured: false, user: '', repo: '', token: '', pass: '', tutorials: [] };
+  db = { configured: false, user: '', repo: '', token: '', pass: '', viewerPass: '', tutorials: [] };
 }
 let currentTutorialId = null;
 let previewMode = null; // 'list' | 'tutorial'
@@ -769,8 +774,9 @@ function saveConfig() {
   const repo = document.getElementById('cfg-repo').value.trim();
   const token = document.getElementById('cfg-token').value.trim();
   const pass = document.getElementById('cfg-pass').value;
+  const viewerPass = document.getElementById('cfg-viewerpass').value;
   if (!user || !repo || !token || !pass) { toast('⚠️ Compila tutti i campi'); return; }
-  db.user = user; db.repo = repo; db.token = token; db.pass = pass; db.configured = true;
+  db.user = user; db.repo = repo; db.token = token; db.pass = pass; db.viewerPass = viewerPass; db.configured = true;
   saveDB();
   showScreen('home');
   renderHome();
@@ -1055,6 +1061,7 @@ function showSettings() {
   document.getElementById('s-repo').value = db.repo;
   document.getElementById('s-token').value = db.token;
   document.getElementById('s-pass').value = db.pass;
+  document.getElementById('s-viewerpass').value = db.viewerPass || '';
   showScreen('settings');
 }
 
@@ -1063,6 +1070,7 @@ function updateSettings() {
   db.repo = document.getElementById('s-repo').value.trim();
   db.token = document.getElementById('s-token').value.trim();
   db.pass = document.getElementById('s-pass').value;
+  db.viewerPass = document.getElementById('s-viewerpass').value;
   saveDB();
   toast('✅ Impostazioni salvate');
   goHome();
@@ -1072,6 +1080,28 @@ function resetAll() {
   if (!confirm('Cancellare tutto? Questa operazione non si può annullare.')) return;
   localStorage.removeItem(DB_KEY);
   location.reload();
+}
+
+// ══════════════════════════════════════════
+// CIFRATURA AES-256-GCM
+// ══════════════════════════════════════════
+async function aesEncrypt(data, password) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const km   = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  const key  = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['encrypt']
+  );
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(data));
+  const combined  = new Uint8Array(16 + 12 + encrypted.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, 16);
+  combined.set(new Uint8Array(encrypted), 28);
+  let binStr = '';
+  for (let i = 0; i < combined.length; i++) binStr += String.fromCharCode(combined[i]);
+  return btoa(binStr);
 }
 
 // ══════════════════════════════════════════
@@ -1101,7 +1131,12 @@ async function doPublish() {
   try {
     const { user, repo, token } = db;
     const fileName = 'guida-viewer.html';
-    const content = buildViewerHTML();
+    let encBlob = null;
+    if (db.viewerPass) {
+      status.textContent = 'Cifratura dati in corso…';
+      encBlob = await aesEncrypt(JSON.stringify(db.tutorials), db.viewerPass);
+    }
+    const content = buildViewerHTML(encBlob);
     const encoded = btoa(unescape(encodeURIComponent(content)));
 
     // check if file exists (to get SHA for update)
@@ -1168,20 +1203,9 @@ async function doPublish() {
 // ══════════════════════════════════════════
 // BUILD VIEWER HTML (per lei)
 // ══════════════════════════════════════════
-function buildViewerHTML() {
-  const tutorials = db.tutorials;
-  // Encode JSON as base64 to avoid any script-breaking characters
-  const tutJsonB64 = btoa(unescape(encodeURIComponent(JSON.stringify(tutorials))));
-
-  return `<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Le mie guide</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+function buildViewerHTML(encBlob) {
+  // Parte comune: CSS + struttura HTML
+  const commonCSS = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#e8f4fd,#f0fdf4 50%,#fef9ee);min-height:100vh;color:#1e293b;}
 .header{background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;padding:28px 20px 20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(59,130,246,.3);}
 .header h1{font-size:26px;font-weight:900;}
@@ -1197,22 +1221,18 @@ body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#e8f4fd,#
 .step-head{background:#3b82f6;color:white;padding:14px 18px;display:flex;align-items:center;gap:10px;}
 .step-num{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .step-lbl{font-weight:800;font-size:14px;}
-.step-img{width:100%;max-height:340px;object-fit:contain;background:#f8fafc;display:block;}
-.step-caption{padding:16px 18px;font-size:17px;font-weight:700;line-height:1.5;}
+.step-img{width:100%;max-height:500px;object-fit:contain;background:#f8fafc;display:block;}
+.step-caption{padding:16px 18px;font-size:18px;font-weight:700;line-height:1.6;color:#1e293b;}
 .done-btn{width:calc(100% - 36px);margin:0 18px 20px;padding:15px;background:#22c55e;border:none;border-radius:14px;color:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.3);}
 .empty{text-align:center;padding:60px 20px;color:#94a3b8;}
 .empty .big{font-size:48px;display:block;margin-bottom:12px;}
 .banner{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;}
 .banner-emoji{font-size:32px;flex-shrink:0;}
 .banner-text{font-size:14px;font-weight:700;color:#92400e;line-height:1.4;}
-</style>
-</head>
-<body>
-<div class="header"><h1>🌟 Le mie guide</h1><p>Passo dopo passo, ce la fai!</p></div>
-<div class="main" id="main"></div>
-<div id="tdata" style="display:none">${tutJsonB64}</div>
-<script>
-var tutorials = JSON.parse(decodeURIComponent(escape(atob(document.getElementById('tdata').textContent))));
+.home-tip{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#166534;font-weight:700;display:flex;align-items:center;gap:10px;}`;
+
+  // Script comune per il rendering
+  const commonScript = `
 var mode = 'list';
 var currentId = null;
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
@@ -1220,11 +1240,17 @@ function render() {
   var main = document.getElementById('main');
   var h1 = document.querySelector('.header h1');
   if (mode === 'list') {
-    h1.textContent = '🌟 Le mie guide';
-    if (!tutorials.length) { main.innerHTML = '<div class="empty"><span class="big">📭</span><p>Nessuna guida ancora.</p></div>'; return; }
-    var html = '<div class="banner"><div class="banner-emoji">💪</div><div class="banner-text">Qui trovi tutto quello che ti serve. Prenditi il tempo che vuoi!</div></div>';
+    h1.textContent = '\\u{1F31F} Le mie guide';
+    if (!tutorials.length) { main.innerHTML = '<div class="empty"><span class="big">\\u{1F4ED}</span><p>Nessuna guida ancora.</p></div>'; return; }
+    var html = '<div class="banner"><div class="banner-emoji">\\u{1F4AA}</div><div class="banner-text">Qui trovi tutto quello che ti serve. Prenditi il tempo che vuoi!</div></div>';
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var isStandalone = window.navigator.standalone;
+    if (isIOS && !isStandalone && !localStorage.getItem('tip-home')) {
+      html += '<div class="home-tip">\\u{1F4F1} Suggerimento: tocca Condividi poi \\"Aggiungi a schermata Home\\" per aprirla come un\\'app e non perdere l\\'accesso.</div>';
+      localStorage.setItem('tip-home','1');
+    }
     tutorials.forEach(function(t, i) {
-      html += '<div class="tut-card" data-idx="'+i+'"><span class="tut-icon">'+esc(t.icon)+'</span><div class="tut-name">'+esc(t.name)+'</div><div class="tut-meta">'+((t.steps||[]).length)+' schermate · Tocca per iniziare →</div></div>';
+      html += '<div class="tut-card" data-idx="'+i+'"><span class="tut-icon">'+esc(t.icon)+'</span><div class="tut-name">'+esc(t.name)+'</div><div class="tut-meta">'+((t.steps||[]).length)+' schermate \\u00B7 Tocca per iniziare \\u2192</div></div>';
     });
     main.innerHTML = html;
     main.querySelectorAll('.tut-card').forEach(function(el) {
@@ -1235,14 +1261,14 @@ function render() {
     for(var i=0;i<tutorials.length;i++){if(tutorials[i].id===currentId){t=tutorials[i];break;}}
     if(!t){mode='list';render();return;}
     h1.textContent = (t.icon||'') + ' ' + (t.name||'');
-    var html2 = '<button class="back-btn" id="backBtn">‹ Torna alle guide</button>';
+    var html2 = '<button class="back-btn" id="backBtn">\\u2039 Torna alle guide</button>';
     (t.steps||[]).forEach(function(s,i){
       html2 += '<div class="step-card"><div class="step-head"><div class="step-num">'+(i+1)+'</div><div class="step-lbl">Passo '+(i+1)+'</div></div>';
       if(s.img) html2 += '<img class="step-img" src="'+s.img+'" alt="passo '+(i+1)+'">';
       if(s.caption) html2 += '<div class="step-caption">'+esc(s.caption)+'</div>';
       html2 += '</div>';
     });
-    html2 += '<button class="done-btn" id="doneBtn">✅ Ho finito! Torna alle guide</button>';
+    html2 += '<button class="done-btn" id="doneBtn">\\u2705 Ho finito! Torna alle guide</button>';
     main.innerHTML = html2;
     document.getElementById('backBtn').addEventListener('click', goBack);
     document.getElementById('doneBtn').addEventListener('click', goBack);
@@ -1250,8 +1276,138 @@ function render() {
   }
 }
 function openTut(id) { mode = 'tutorial'; currentId = id; render(); }
-function goBack() { mode = 'list'; render(); }
+function goBack() { mode = 'list'; render(); }`;
+
+  if (!encBlob) {
+    // ── Versione senza password: JSON diretto ──
+    const tutJson = JSON.stringify(db.tutorials).replace(/<\/script/gi, '<\\/script');
+    return `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Le mie guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+${commonCSS}
+</style>
+</head>
+<body>
+<div class="header"><h1>🌟 Le mie guide</h1><p>Passo dopo passo, ce la fai!</p></div>
+<div class="main" id="main"></div>
+<script>
+var tutorials = ${tutJson};
+${commonScript}
 render();
+<\/script>
+</body>
+</html>`;
+  }
+
+  // ── Versione con password: dati cifrati AES-256-GCM ──
+  return `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Le mie guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+${commonCSS}
+#lockScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#e8f4fd,#f0fdf4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;font-family:'Nunito',sans-serif;}
+.lock-icon{font-size:64px;margin-bottom:16px;}
+.lock-title{font-size:24px;font-weight:900;color:#1e293b;margin-bottom:8px;}
+.lock-sub{font-size:15px;color:#64748b;margin-bottom:32px;text-align:center;line-height:1.5;}
+.lock-input{width:100%;max-width:300px;padding:16px 18px;border:2px solid #e2e8f0;border-radius:14px;font-size:20px;font-family:'Nunito',sans-serif;text-align:center;outline:none;margin-bottom:12px;letter-spacing:2px;}
+.lock-input:focus{border-color:#3b82f6;}
+.lock-btn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:14px;color:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;cursor:pointer;}
+.lock-err{color:#ef4444;font-size:14px;font-weight:700;margin-top:14px;min-height:20px;text-align:center;}
+.lock-wait{color:#94a3b8;font-size:13px;margin-top:10px;}
+</style>
+</head>
+<body>
+<div id="lockScreen">
+  <div class="lock-icon">🔒</div>
+  <div class="lock-title">Area protetta</div>
+  <div class="lock-sub">Inserisci la password<br>per vedere le guide</div>
+  <input class="lock-input" id="lockPass" type="password" placeholder="Password" autocomplete="current-password">
+  <button class="lock-btn" id="lockBtn" onclick="doUnlock()">Entra →</button>
+  <div class="lock-err" id="lockErr"></div>
+  <div class="lock-wait" id="lockWait"></div>
+</div>
+<div class="header" style="display:none" id="mainHeader"><h1>🌟 Le mie guide</h1><p>Passo dopo passo, ce la fai!</p></div>
+<div class="main" id="main"></div>
+<div id="encdata" style="display:none">${encBlob}<\/div>
+<script>
+var tutorials = null;
+var STORE_KEY = 'guida-v1-auth';
+
+async function aesDecrypt(b64, password) {
+  var bytes = Uint8Array.from(atob(b64), function(c){ return c.charCodeAt(0); });
+  var salt = bytes.slice(0, 16);
+  var iv   = bytes.slice(16, 28);
+  var data = bytes.slice(28);
+  var enc  = new TextEncoder();
+  var km   = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  var key  = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+  );
+  var dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, data);
+  return new TextDecoder().decode(dec);
+}
+
+async function tryUnlock(password) {
+  var blob = document.getElementById('encdata').textContent.trim();
+  try {
+    var json = await aesDecrypt(blob, password);
+    tutorials = JSON.parse(json);
+    localStorage.setItem(STORE_KEY, password);
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainHeader').style.display = '';
+    render();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function doUnlock() {
+  var p = document.getElementById('lockPass').value;
+  if (!p) return;
+  var btn = document.getElementById('lockBtn');
+  var err = document.getElementById('lockErr');
+  var wait = document.getElementById('lockWait');
+  btn.disabled = true;
+  err.textContent = '';
+  wait.textContent = 'Verifica in corso…';
+  var ok = await tryUnlock(p);
+  if (!ok) {
+    err.textContent = 'Password errata, riprova.';
+    wait.textContent = '';
+    document.getElementById('lockPass').value = '';
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('lockPass').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') doUnlock();
+});
+
+// Auto-sblocco da localStorage (password già salvata)
+(async function() {
+  var saved = localStorage.getItem(STORE_KEY);
+  if (saved) {
+    document.getElementById('lockWait').textContent = 'Accesso automatico…';
+    var ok = await tryUnlock(saved);
+    if (!ok) {
+      localStorage.removeItem(STORE_KEY);
+      document.getElementById('lockWait').textContent = '';
+    }
+  }
+})();
+
+${commonScript}
 <\/script>
 </body>
 </html>`;
